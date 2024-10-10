@@ -13,7 +13,7 @@ rp.rp_Init()
 base_rate = rp_hw_profiles.rp_HPGetBaseSpeedHzOrDefault()
 
 config = configparser.ConfigParser()
-config.read('config.ini') #path of your .ini file
+config.read('/opt/redpitaya/bin/config.ini') #path of your .ini file
 trigger_level = float(config.get("ADC","trigger_level"))
 trigger_mode = config.get("ADC","trigger_mode")
 buffer_time = config.get("ADC","buffer_time")
