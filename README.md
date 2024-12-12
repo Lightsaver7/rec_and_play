@@ -84,7 +84,8 @@ repetition_delay=10
 Once the *Record and Play* application is set up, it will start each time Red Pitaya boots. Here is how you can disable the process.
 
 - **One time disable** - to stop the application until the next boot use the `top` command inside Red Pitaya Linux and `kill` the *main.py* process. By entering the PID of the process, the Linux will kill it.
-- **Full disable** - First kill the *main.py* process as described in the point above. Then head to the "/opt/redpitaya/sbin" directory and find the **startup.sh** script. Either delete or comment the following lines of code:
+  ![Top process](./img/Rec_and_play_top.png)
+- **Full disable** - First kill the *main.py* process as described in the point above. Then head to the "/opt/redpitaya/sbin" directory and find the **startup.sh** script (you may have to enter *rw* mode). Either delete or comment the following lines of code:
   ```
   # Here you can specify commands for autorun at system startup
   export PYTHONPATH=/opt/redpitaya/lib/python/:$PYTHONPATH
@@ -92,6 +93,5 @@ Once the *Record and Play* application is set up, it will start each time Red Pi
   ```
   You can also remove the *main.py* and *config.ini* from */opt/redpitaya/bin*.
 
-  ![Top process](./img/Rec_and_play_top.png)
 
 
