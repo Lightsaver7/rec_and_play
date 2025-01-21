@@ -56,27 +56,31 @@ The settings are split into acquisition (ADC) and generation (DAC):
 - Signal generation source channel (IN1 or IN2) - which input channel should be generated/repeated on OUT1
 - Number of Cycles (NCYC) - Number of Cycles/Periods in one burst/repetition (without any delay between them)
 - Number of Repetitions (NOR) - Number of repeated bursts (with delay between them). Each burst includes a number of repetitions without delay.
-- Delay between repetitions (PERIOD) - Delay between repetitions in microseconds (µs).
+- Delay between repetitions (PERIOD) - Delay between repetitions in microseconds (µs). The minimum value must be no less than ("Record buffer lenght" * NCYC + 1)µS
 
 Example of "config.ini":
 ```
 [ADC]
-; Level in volts
-trigger_level = 0.1
-; Values: CH1_PE, CH1_NE, CH2_PE, CH2_NE
-trigger_mode = CH1_PE
-; Buffer size in microseconds
-buffer_time = 20
+; Trigger Level in volts
+trigger_level=0.1
+; Trigger source (Values: CH1_PE, CH1_NE, CH2_PE, CH2_NE)
+trigger_mode=CH1_PE
+; Record signal Buffer size in microseconds (min 1 µs)
+buffer_time=20
 
 [DAC]
-; Gen signal from source: IN1,IN2
+; Gen signal from source (IN1, IN2). Which input to use for recording data.
 signal_source=IN1
-; Number of signal repetitions without delays
+; Number of signal repetitions without delays (NCYC - number of cycles/periods in a single burst).
 count_burst=1
-; Number of repetitions with delay. Includes the number of repetitions without delay.
+; Number of repetitions with delay (NOR - Number of Repetitions/Bursts). Each repetition includes `count_burst` (NCYC) recordings without delay.
 repetition=3
 ; Delay between repetitions.
-repetition_delay=10
+; If there is a "repetition" number of repetitions, then the minimum allowed delay must be no less than:
+; buffer_time * count_burst + 1 µS
+; Otherwise the signal may break. If there are no repetitions, the value is ignored
+; For example. buffer_time = 20, count_burst=2. repetition_delay = 20 * 2 + 1 = 41 µS
+repetition_delay=21
 ```
 
 ## Disable the Record and Play
