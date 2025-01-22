@@ -7,13 +7,15 @@ import rp
 import rp_hw_profiles
 import numpy as np
 
+# Load FPGA and init Python API commands
 fpga = rp_overlay.overlay()
 rp.rp_Init()
 
 base_rate = rp_hw_profiles.rp_HPGetBaseSpeedHzOrDefault()
 
+# Get configuration settings from config.ini file
 config = configparser.ConfigParser()
-config.read('/opt/redpitaya/bin/config.ini') #path of your .ini file
+config.read('/opt/redpitaya/bin/config.ini')                 # Path to the config.ini file
 trigger_level = float(config.get("ADC","trigger_level"))
 trigger_mode = config.get("ADC","trigger_mode")
 buffer_time = config.get("ADC","buffer_time")
@@ -26,7 +28,7 @@ buffer_samples = round((0.000001 * float(buffer_time)) / (1.0 / float(base_rate)
 # Aligin to 128 samples for DAC-AXI mode
 buffer_samples = (math.floor(buffer_samples / 128) + 1) * 128
 
-gen_channel = rp.RP_CH_1
+gen_channel = rp.RP_CH_1                    # Specify generator channel (can be changed to RP_CH_2 to use OUT2)
 
 acq_trig_sour = rp.RP_TRIG_SRC_CHA_PE
 trig_level_sour = rp.RP_T_CH_1
@@ -43,7 +45,7 @@ if (trigger_mode == "CH2_NE"):
     acq_trig_sour = rp.RP_TRIG_SRC_CHB_NE
     trig_level_sour = rp.RP_T_CH_2
 
-
+# Configure Deep Memory Acquisition
 memory = rp.rp_AcqAxiGetMemoryRegion()
 if (memory[0] != rp.RP_OK):
     print("Error get reserved memory")
@@ -84,6 +86,7 @@ if (rp.rp_AcqAxiEnable(rp.RP_CH_2,True) != rp.RP_OK):
     print("Error enable axi mode for CH2")
     exit(1)
 
+# Configure Deep Memory Generation (also uses direct memory acess)
 if (rp.rp_GenAxiReserveMemory(rp.RP_CH_1,out1_dma_address, out1_dma_address + buffer_samples * 2) != rp.RP_OK):
     print("Error setting address for DMA mode for OUT1")
     exit(1)
@@ -105,38 +108,47 @@ rp.rp_GenBurstCount(rp.RP_CH_1, int(count_burst))
 rp.rp_GenBurstRepetitions(rp.RP_CH_1, int(repetition));
 rp.rp_GenBurstPeriod(rp.RP_CH_1, int(repetition_delay));
 
+# Start the infinite loop of recording and generating
 while(1):
+    # Set trigger level
     if (rp.rp_AcqSetTriggerLevel(trig_level_sour,trigger_level) != rp.RP_OK):
         print("Error set trigger level")
         exit(1)
 
+    # Start acquisition
     if (rp.rp_AcqStart() != rp.RP_OK):
         print("Error start acq")
         exit(1)
 
+    # Specify trigger source
     rp.rp_AcqSetTriggerSrc(acq_trig_sour)
 
-    # Trigger state
+    # Wait for trigger to arrive (check trigger state)
     while 1:
         trig_state = rp.rp_AcqGetTriggerState()[1]
         if trig_state == rp.RP_TRIG_STATE_TRIGGERED:
             break
 
-    # Fill state
+    # Wait for buffer full (Check buffer fill state)
     while 1:
         if rp.rp_AcqGetBufferFillState()[1]:
             break
+            
+    # Stop acquisition and get the DMA data from both channels
     rp.rp_AcqStop()
     tp=rp.rp_AcqGetWritePointerAtTrig()[1]
     rp.rp_AcqGetDataVNP(rp.RP_CH_1,tp, arr_f_ch1)
     rp.rp_AcqGetDataVNP(rp.RP_CH_2,tp, arr_f_ch2)
 
-    # Pass data to generator
+    # Pass the acquired data to the generator
     if (gen_src_channel == "IN1"):
         rp.rp_GenAxiWriteWaveform(gen_channel,arr_f_ch1)
 
     if (gen_src_channel == "IN2"):
         rp.rp_GenAxiWriteWaveform(gen_channel,arr_f_ch2)
 
+    # Enable and trigger the generation
     rp.rp_GenOutEnable(gen_channel);
     rp.rp_GenTriggerOnly(gen_channel);
+
+    # Repeat the process (back to start of while loop)
