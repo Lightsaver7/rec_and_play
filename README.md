@@ -1,12 +1,12 @@
-# 🎵 RF Signal Recording and Playback
+# RF Signal Recording and Playback
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/RedPitaya/rec_and_play)
 [![OS](https://img.shields.io/badge/OS-Red%20Pitaya%20Linux-green.svg)](https://redpitaya.com/)
-[![Python](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 
 > Record RF signal pulses from IN1/IN2 and replay them on OUT1/OUT2 using Deep Memory Acquisition/Generation
 
-## 📋 Table of Contents
+## Table of Contents
 - [Features](#-features)
 - [Requirements](#-requirements)
 - [Quick Start](#-quick-start)
@@ -16,7 +16,7 @@
 - [Troubleshooting](#-troubleshooting)
 - [FAQ](#-faq)
 
-## ✨ Features
+## Features
 
 - **Dual Channel Processing**: Independent IN1→OUT1 and IN2→OUT2 signal recording/playback
 - **Deep Memory Mode**: High-speed acquisition using Red Pitaya's DMA capabilities
@@ -25,11 +25,11 @@
 - **Real-time Operation**: Low-latency signal processing with threaded architecture
 - **Auto-start**: Automatic startup on Red Pitaya boot
 
-## 📡 Overview
+## Overview
 
 This application captures RF signal pulses from Red Pitaya's analog inputs (IN1/IN2) and immediately replays them on the corresponding outputs (OUT1/OUT2). It leverages **Deep Memory Acquisition** for high-speed recording and **Deep Memory Generation** for precise playback.
 
-### 🚀 How It Works
+### How It Works
 1. **Acquisition**: Each channel independently monitors its input for trigger conditions
 2. **Recording**: When triggered, captures the signal using DMA for minimal latency
 3. **Generation**: Immediately replays the captured signal with configurable burst patterns
@@ -56,7 +56,7 @@ This application consumes significant system resources and **cannot run simultan
 Please make sure that Red Pitaya inputs and outputs are properly terminated (matched impedance). Failure to do so may lead to undefined behaviour of the *Record and Playback* application due to the [ringing](https://incompliancemag.com/circuit-theory-model-of-ringing-on-a-transmission-line/) on the [transmission line](https://en.wikipedia.org/wiki/Transmission_line).
 Red Pitaya fast analog inputs have input impedance of 1 MΩ. The fast analog outputs have output impedace of 50 Ω.
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Connect** to your Red Pitaya via SSH
 2. **Clone** the repository: `git clone https://github.com/RedPitaya/rec_and_play.git`
@@ -65,7 +65,7 @@ Red Pitaya fast analog inputs have input impedance of 1 MΩ. The fast analog out
 5. **Reboot** Red Pitaya
 6. **Done!** Application starts automatically on boot
 
-## 🚀 Installation
+## Installation
 
 ### Option A: Automatic Setup (Recommended)
 
@@ -115,7 +115,7 @@ scp -r /path-to-downloaded-repository/rec_and_play root@rp-xxxxxx.local:/root
 
 The application uses `/opt/redpitaya/bin/config.ini` for all settings. Each channel (ADC/DAC) is configured independently.
 
-### 📥 Acquisition Settings (ADC)
+### Acquisition Settings (ADC)
 
 | Parameter | Description | Values | Unit |
 |-----------|-------------|--------|------|
@@ -123,7 +123,7 @@ The application uses `/opt/redpitaya/bin/config.ini` for all settings. Each chan
 | `trigger_mode` | Trigger condition | `CH1_PE`, `CH1_NE`, `CH2_PE`, `CH2_NE` | - |
 | `buffer_time` | Recording duration | 1-30 | µs |
 
-### 📤 Generation Settings (DAC)
+### Generation Settings (DAC)
 
 | Parameter | Description | Values | Unit |
 |-----------|-------------|--------|------|
@@ -132,7 +132,7 @@ The application uses `/opt/redpitaya/bin/config.ini` for all settings. Each chan
 | `repetition` | Number of bursts (NOR) | ≥1 | count |
 | `repetition_delay` | Delay between bursts | ≥ (buffer_time × count_burst + 1) | µs |
 
-### 📄 Sample Configuration
+### Sample Configuration
 
 ```ini
 [ADC1]
@@ -185,7 +185,7 @@ repetition_delay=50
 - **Buffer sizes** should be identical for both channels
 - **Timing constraints** must be respected to avoid signal corruption
 
-## 🎮 Usage
+## Usage
 
 ### Starting the Application
 The application starts automatically on boot if installed with `setup.sh`. For manual start:
