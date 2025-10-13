@@ -37,19 +37,18 @@ This application captures RF signal pulses from Red Pitaya's analog inputs (IN1/
 
 ### ⚠️ Important Notes
 - **Not compatible** with Red Pitaya Web Interface simultaneously
-- **Requires proper termination** of analog inputs/outputs (50Ω)
+- **Requires proper termination** of analog inputs/outputs (50 Ω)
 - **Resource intensive** - dedicated real-time signal processing 
 
 ## 🔧 Requirements
 
 ### Hardware
-- **Red Pitaya STEMlab 125-14** or compatible model
-- **Properly terminated** analog inputs/outputs (50Ω impedance matching)
+- **Any Red Pitaya device**
+- **Properly terminated** analog inputs/outputs (50 Ω impedance matching)
 
 ### Software
 - **OS**: Red Pitaya Linux 2.07 or higher
 - **Build**: Nightly Build 637 or higher
-- **Python**: 3.7+ with Red Pitaya libraries
 
 ### ⚠️ Compatibility Warning
 This application consumes significant system resources and **cannot run simultaneously** with the Red Pitaya Web Interface. The web interface will be severely slowed down or unresponsive.
@@ -61,9 +60,10 @@ Red Pitaya fast analog inputs have input impedance of 1 MΩ. The fast analog out
 
 1. **Connect** to your Red Pitaya via SSH
 2. **Clone** the repository: `git clone https://github.com/RedPitaya/rec_and_play.git`
-3. **Run setup**: `cd rec_and_play && ./setup.sh`
-4. **Reboot** Red Pitaya
-5. **Done!** Application starts automatically on boot
+3. **Enable** running scripts `chmod +x ./rec_and_play/setup.sh`
+4. **Run setup**: `cd rec_and_play && ./setup.sh`
+5. **Reboot** Red Pitaya
+6. **Done!** Application starts automatically on boot
 
 ## 🚀 Installation
 
@@ -129,7 +129,7 @@ The application uses `/opt/redpitaya/bin/config.ini` for all settings. Each chan
 |-----------|-------------|--------|------|
 | `signal_source` | Input channel to record | `IN1`, `IN2` | - |
 | `count_burst` | Cycles per burst (NCYC) | ≥1 | count |
-| `repetition` | Number of bursts (NOR) | ≥0 | count |
+| `repetition` | Number of bursts (NOR) | ≥1 | count |
 | `repetition_delay` | Delay between bursts | ≥ (buffer_time × count_burst + 1) | µs |
 
 ### 📄 Sample Configuration
@@ -201,8 +201,15 @@ python3 main.py
 - Application runs indefinitely until interrupted
 
 ### Stopping the Application
-- **Temporary**: Press `Ctrl+C` in the terminal
-- **Permanent**: Kill the process or remove from startup script
+- **Temporary**: To stop the application until the next boot press `Ctrl+C` in the terminal or kill the process in `top` (write `k` and the PID of the porcess).
+    ![Top process](./img/Rec_and_play_top_kill.png)
+- **Permanent**: First stop the application. Then remove it from `startup.sh` script located in `/opt/redpitaya/sbin` directory (you may have to enter `rw` mode). Either delete or comment the following lines of code:
+    ```
+    # Here you can specify commands for autorun at system startup
+    export PYTHONPATH=/opt/redpitaya/lib/python/:$PYTHONPATH
+    /opt/redpitaya/bin/main.py
+    ```
+    You can also remove the `main.py` and `config.ini` from `/opt/redpitaya/bin`.
 
 ## 🔧 Troubleshooting
 
@@ -218,7 +225,7 @@ python3 main.py
 
 **❌ No signal output**
 - Check input signal levels and trigger settings
-- Verify proper impedance termination (50Ω)
+- Verify proper impedance termination (50 Ω)
 - Confirm `signal_source` configuration
 
 **❌ System slowdown**
@@ -232,6 +239,7 @@ Add print statements to `channel_processing_loop()` for detailed diagnostics.
 - Reduce `buffer_time` for faster response
 - Adjust `repetition_delay` to prevent signal overlap
 - Monitor CPU usage with `top` command
+- Reduce the value of `LOOP_DELAY` to achieve faster trigger checking
 
 ## ❓ FAQ
 

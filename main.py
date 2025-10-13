@@ -15,6 +15,7 @@ DMM_ALIGNMENT_SIZE = 4096
 CONFIG_PATH = '/opt/redpitaya/bin/config.ini'
 DECIMATION_FACTOR = 1
 MEMORY_ALIGNMENT_OFFSET = 64
+LOOP_DELAY = 0.001  # Delay in seconds for main loop to prevent CPU overload
 
 def calculate_aligned_address(base_addr, size, alignment=DMM_ALIGNMENT_SIZE):
     """Calculate DMA address with proper alignment"""
@@ -349,7 +350,7 @@ def channel_processing_loop(channel_idx):
                 if trig_state == rp.RP_TRIG_STATE_TRIGGERED:
                     break
                 # Small delay between cycles to prevent overwhelming the system
-                time.sleep(0.001)
+                time.sleep(LOOP_DELAY)
 
             if stop_threads:
                 break
