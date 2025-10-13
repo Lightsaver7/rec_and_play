@@ -1,65 +1,140 @@
-# RF Signal Recording and Playback script
+# 🎵 RF Signal Recording and Playback
 
-RF Signal Record and Playback script records signal pulses acquired on both IN1 and IN2 and repeats them on the corresponding output channel (OUT1 or OUT2) acording to the configuration file.
-Deep Memory Acquisition and Generation are used to record and playback the captured signals. Split trigger mode ensures the acquisition triggers are separated. Each channel runs in a separate thread.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/RedPitaya/rec_and_play)
+[![OS](https://img.shields.io/badge/OS-Red%20Pitaya%20Linux-green.svg)](https://redpitaya.com/)
+[![Python](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/)
 
-This application is not meant to be used in parallel with the Red Pitaya WEB interface. As most processing resources is taken by the *Record and Play* application, the Web interface is severly slowed down. 
+> Record RF signal pulses from IN1/IN2 and replay them on OUT1/OUT2 using Deep Memory Acquisition/Generation
 
-## Setup
+## 📋 Table of Contents
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+- [Troubleshooting](#-troubleshooting)
+- [FAQ](#-faq)
 
-The application requires the following OS version:
-- Nightly Build 637 (or higher) together with Red Pitaya Linux 2.07 (or higher).
+## ✨ Features
+
+- **Dual Channel Processing**: Independent IN1→OUT1 and IN2→OUT2 signal recording/playback
+- **Deep Memory Mode**: High-speed acquisition using Red Pitaya's DMA capabilities
+- **Split Trigger Mode**: Isolated trigger handling for each channel
+- **Configurable Parameters**: Flexible trigger levels, buffer sizes, and burst patterns
+- **Real-time Operation**: Low-latency signal processing with threaded architecture
+- **Auto-start**: Automatic startup on Red Pitaya boot
+
+## 📡 Overview
+
+This application captures RF signal pulses from Red Pitaya's analog inputs (IN1/IN2) and immediately replays them on the corresponding outputs (OUT1/OUT2). It leverages **Deep Memory Acquisition** for high-speed recording and **Deep Memory Generation** for precise playback.
+
+### 🚀 How It Works
+1. **Acquisition**: Each channel independently monitors its input for trigger conditions
+2. **Recording**: When triggered, captures the signal using DMA for minimal latency
+3. **Generation**: Immediately replays the captured signal with configurable burst patterns
+4. **Loop**: Continues indefinitely until stopped
+
+### ⚠️ Important Notes
+- **Not compatible** with Red Pitaya Web Interface simultaneously
+- **Requires proper termination** of analog inputs/outputs (50Ω)
+- **Resource intensive** - dedicated real-time signal processing 
+
+## 🔧 Requirements
+
+### Hardware
+- **Red Pitaya STEMlab 125-14** or compatible model
+- **Properly terminated** analog inputs/outputs (50Ω impedance matching)
+
+### Software
+- **OS**: Red Pitaya Linux 2.07 or higher
+- **Build**: Nightly Build 637 or higher
+- **Python**: 3.7+ with Red Pitaya libraries
+
+### ⚠️ Compatibility Warning
+This application consumes significant system resources and **cannot run simultaneously** with the Red Pitaya Web Interface. The web interface will be severely slowed down or unresponsive.
 
 Please make sure that Red Pitaya inputs and outputs are properly terminated (matched impedance). Failure to do so may lead to undefined behaviour of the *Record and Playback* application due to the [ringing](https://incompliancemag.com/circuit-theory-model-of-ringing-on-a-transmission-line/) on the [transmission line](https://en.wikipedia.org/wiki/Transmission_line).
 Red Pitaya fast analog inputs have input impedance of 1 MΩ. The fast analog outputs have output impedace of 50 Ω.
 
-**Installation  steps:**
+## 🚀 Quick Start
 
-1. Establish SSH connection with your Red Pitaya
-2. Download the "rec_and_play" GitHub Repository to the Red Pitaya.
-   ```
-   cd /root
-   git clone https://github.com/RedPitaya/rec_and_play.git rap
-   ```
-   Alternatively, download the repository to your computer and copy the code to the Red Pitaya through the SCP command:
-   ```
-   scp -r /<path-to-downloaded-repository>/rec_and_play root@rp-xxxxxx.local:/root
-   ```
-3. Move to the *Record and Play* directory on the Red Pitaya.
-   ```cd /root/rap```
-4. Make sure all the scripts are executable (use the `chmod` commnad).
-   ```chmod +x setup.sh config.ini main.py```
-5. To autorun the application at boot, execute the following script:
-   ```./setup.sh```
-6. For manual installation enter read-write mode in Red Pitaya and copy the scripts into the "/opt/redpitaya/bin" folder.
-   ```
-   rw
-   cp -f ./main.py /opt/redpitaya/bin/
-   cp -f ./config.ini /opt/redpitaya/bin/
-   ```
-7. The configuration file is located in "/opt/redpitaya/bin/config.ini".
-8. Reboot the Red Pitaya.
+1. **Connect** to your Red Pitaya via SSH
+2. **Clone** the repository: `git clone https://github.com/RedPitaya/rec_and_play.git`
+3. **Run setup**: `cd rec_and_play && ./setup.sh`
+4. **Reboot** Red Pitaya
+5. **Done!** Application starts automatically on boot
 
-## Configuration
+## 🚀 Installation
 
-The *Record and Play* application settings are specified in the configuration file (config.ini) located in "/opt/redpitaya/bin/" directory.
-The settings are split into acquisition (ADC) and generation (DAC):
+### Option A: Automatic Setup (Recommended)
 
-**Acquisition (ADC)**
+```bash
+# 1. Connect via SSH to your Red Pitaya
+ssh root@rp-xxxxxx.local
 
-- Trigger level (in Volts)
-- Trigger source (CH1_PE, CH1_NE, CH2_PE, CH2_NE)
-- Record buffer lenght (uses Deep Memory Acquisition) in microseconds (between 1 and 30 µs)
+# 2. Download and setup
+cd /root
+git clone https://github.com/RedPitaya/rec_and_play.git rap
+cd rap
 
-**Generation (DAC)**
+# 3. Make scripts executable and run setup
+chmod +x setup.sh
+./setup.sh
 
-- Signal generation source channel (IN1 or IN2) - which input channel should be generated/repeated on the coresponding output (OUT1 or OUT2)
-- Number of Cycles (NCYC) - Number of Cycles/Periods in one burst/repetition (without any delay between them)
-- Number of Repetitions (NOR) - Number of repeated bursts (with delay between them). Each burst includes a number of repetitions without delay.
-- Delay between repetitions (PERIOD) - Delay between repetitions in microseconds (µs). The minimum value must be no less than ("Record buffer lenght" * NCYC + 1)µS
-
-Example of "config.ini":
+# 4. Reboot Red Pitaya
+reboot
 ```
+
+### Option B: Manual Setup
+
+```bash
+# 1. Enable read-write mode
+rw
+
+# 2. Copy files to system directory
+cp main.py /opt/redpitaya/bin/
+cp config.ini /opt/redpitaya/bin/
+
+# 3. Add to startup (optional)
+echo "export PYTHONPATH=/opt/redpitaya/lib/python/:\$PYTHONPATH" >> /opt/redpitaya/sbin/startup.sh
+echo "/opt/redpitaya/bin/main.py" >> /opt/redpitaya/sbin/startup.sh
+
+# 4. Reboot
+reboot
+```
+
+### Alternative: Download and Copy
+
+Download the repository to your computer and copy to Red Pitaya:
+```bash
+scp -r /path-to-downloaded-repository/rec_and_play root@rp-xxxxxx.local:/root
+```
+
+## ⚙️ Configuration
+
+The application uses `/opt/redpitaya/bin/config.ini` for all settings. Each channel (ADC/DAC) is configured independently.
+
+### 📥 Acquisition Settings (ADC)
+
+| Parameter | Description | Values | Unit |
+|-----------|-------------|--------|------|
+| `trigger_level` | Voltage threshold for triggering | -1.0 to 1.0 | Volts |
+| `trigger_mode` | Trigger condition | `CH1_PE`, `CH1_NE`, `CH2_PE`, `CH2_NE` | - |
+| `buffer_time` | Recording duration | 1-30 | µs |
+
+### 📤 Generation Settings (DAC)
+
+| Parameter | Description | Values | Unit |
+|-----------|-------------|--------|------|
+| `signal_source` | Input channel to record | `IN1`, `IN2` | - |
+| `count_burst` | Cycles per burst (NCYC) | ≥1 | count |
+| `repetition` | Number of bursts (NOR) | ≥0 | count |
+| `repetition_delay` | Delay between bursts | ≥ (buffer_time × count_burst + 1) | µs |
+
+### 📄 Sample Configuration
+
+```ini
 [ADC1]
 ; IN1 Trigger Level in volts
 trigger_level=0.1
@@ -104,21 +179,80 @@ repetition=3
 ; For example. buffer_time = 20, count_burst=2. repetition_delay = 20 * 2 + 1 = 41 µS
 repetition_delay=50
 ```
-**Please note that cross-configuration between the inputs and outputs is possible, but has not been tested. We recommend using the same buffer size for both channels.**
 
-## Disable the Record and Play
+### ⚠️ Configuration Notes
+- **Cross-channel routing** is supported but untested
+- **Buffer sizes** should be identical for both channels
+- **Timing constraints** must be respected to avoid signal corruption
 
-Once the *Record and Play* application is set up, it will start each time Red Pitaya boots. Here is how you can disable the process.
+## 🎮 Usage
 
-- **One time disable** - to stop the application until the next boot use the `top` command inside Red Pitaya Linux and `kill` the *main.py* process. By entering the PID of the process, the Linux will kill it. You can also stop the program by pressing **CTRL+C** in the main thread.
-  ![Top process](./img/Rec_and_play_top_kill.png)
-- **Full disable** - First kill the *main.py* process as described in the point above. Then head to the "/opt/redpitaya/sbin" directory and find the **startup.sh** script (you may have to enter *rw* mode). Either delete or comment the following lines of code:
-  ```
-  # Here you can specify commands for autorun at system startup
-  export PYTHONPATH=/opt/redpitaya/lib/python/:$PYTHONPATH
-  /opt/redpitaya/bin/main.py
-  ```
-  You can also remove the *main.py* and *config.ini* from */opt/redpitaya/bin*.
+### Starting the Application
+The application starts automatically on boot if installed with `setup.sh`. For manual start:
+
+```bash
+cd /opt/redpitaya/bin
+python3 main.py
+```
+
+### Monitoring Operation
+- Check system logs for status messages
+- Use `top` or `htop` to monitor CPU usage
+- Application runs indefinitely until interrupted
+
+### Stopping the Application
+- **Temporary**: Press `Ctrl+C` in the terminal
+- **Permanent**: Kill the process or remove from startup script
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**❌ "Error setting split trigger"**
+- Ensure you're using compatible Red Pitaya OS version
+- Check system resources aren't exhausted
+
+**❌ "Invalid buffer size"**
+- Verify `buffer_time` is between 1-30 µs
+- Ensure integer values in configuration
+
+**❌ No signal output**
+- Check input signal levels and trigger settings
+- Verify proper impedance termination (50Ω)
+- Confirm `signal_source` configuration
+
+**❌ System slowdown**
+- This is normal - application uses most system resources
+- Web interface will be unresponsive during operation
+
+### Debug Mode
+Add print statements to `channel_processing_loop()` for detailed diagnostics.
+
+### Performance Tuning
+- Reduce `buffer_time` for faster response
+- Adjust `repetition_delay` to prevent signal overlap
+- Monitor CPU usage with `top` command
+
+## ❓ FAQ
+
+**Q: Can I use this with the Web Interface?**  
+A: No, this application consumes all processing resources and will make the web interface unresponsive.
+
+**Q: What's the maximum buffer size?**  
+A: 30 µs maximum, limited by Red Pitaya's DMA capabilities.
+
+**Q: Can I route IN1 to OUT2?**  
+A: Yes, but this configuration is untested. Use `signal_source=IN1` in DAC2 section.
+
+**Q: How do I change trigger sensitivity?**  
+A: Adjust `trigger_level` in ADC sections (range: -1.0 to 1.0 Volts).
+
+**Q: Why does the signal break up?**  
+A: Usually due to insufficient `repetition_delay`. Ensure it's ≥ (buffer_time × count_burst + 1) µs.
+
+---
+
+**Disclaimer**: This application is for advanced users. Ensure proper RF practices and impedance matching to avoid equipment damage.
 
 
 

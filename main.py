@@ -53,7 +53,7 @@ def validate_config(config):
             # Validate critical parameters
             if int(config[section]['count_burst']) <= 0:
                 raise ValueError(f"Invalid count_burst in {section}")
-            if int(config[section]['repetition']) < 0:
+            if int(config[section]['repetition']) <= 0:
                 raise ValueError(f"Invalid repetition in {section}")
             if float(config[section]['repetition_delay']) < 0:
                 raise ValueError(f"Invalid repetition_delay in {section}")
@@ -348,7 +348,8 @@ def channel_processing_loop(channel_idx):
                 trig_state = rp.rp_AcqGetTriggerStateCh(ch)[1]
                 if trig_state == rp.RP_TRIG_STATE_TRIGGERED:
                     break
-                # No sleep - tight loop for minimal latency
+                # Small delay between cycles to prevent overwhelming the system
+                time.sleep(0.001)
 
             if stop_threads:
                 break
@@ -366,9 +367,6 @@ def channel_processing_loop(channel_idx):
             rp.rp_AcqStopCh(ch)
             trigger_pointer = rp.rp_AcqGetWritePointerAtTrigCh(ch)[1]
             process_channel_data(channel_idx, trigger_pointer)
-
-            # Small delay between cycles to prevent overwhelming the system
-            time.sleep(0.001)                                           #! Not sure if we want this
 
     except Exception as e:
         print(f"Error in channel {channel_idx+1} processing loop: {e}")
